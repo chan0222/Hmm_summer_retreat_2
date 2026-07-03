@@ -360,7 +360,6 @@ const ITEMS = [
   { name:'물총',     file:'item18_join.png', group:'hand'    },
   // 튜브 (하나만, 바디 뒤)
   { name:'튜브1',    file:'item4_join.png',  group:'tube',   behindBody:true, frontOfHair:true, colorable:true },
-  { name:'튜브2',    file:'item5_join.png',  group:'tube',   behindBody:true, frontOfHair:true, colorable:true },
   // 기타 (자유 선택)
   { name:'성경책',   file:'item3_join.png',  group:null,     behindBody:true, frontOfHair:true },
   { name:'명찰',     file:'item11_join.png', group:null      },
@@ -982,7 +981,7 @@ function renderIntro() {
     <div class="top-emoji">✝️</div>
     <h1>2026 Holy Mini me Maker</h1>
     <p class="sub">수련회 은혜 유형과 함께 나만의 HMM 미니미를 만들어봐</p>
-    <button class="start-btn" id="start">나만의 미니미 만들기 👕</button>
+    <button class="start-btn" id="start">나만의 HMM 미니미 만들기 👕</button>
     <p class="footer-note">소요시간 약 2분</p>
   `;
   document.getElementById('start').onclick = () => { screen = 'gender'; render(); };
@@ -1293,8 +1292,8 @@ function renderResult() {
     <p class="result-desc">${r.name}의 <b>${r.keyword}</b>과<br>${r2.name}의 <b>${r2.keyword}</b>이 함께 있어요</p>` : '';
 
   root.innerHTML = `
-    <h1>나의 캐릭터 & 은혜 유형</h1>
-    <p class="sub">코디한 캐릭터와 은혜 유형 결과예요</p>
+    <h1>HMM 미니미 완성!</h1>
+    <p class="sub">나만의 미니미를 공유해 봐😆</p>
     ${stageHTML(r.bg)}
     <p class="result-notice">이 테스트는 당신을 단정하기 위한 것이 아닙니다.<br>지금 내 안에 어떤 은혜를 더 구하면 좋을지<br>발견하는 마음으로 받아보세요 🌱</p>
     <div class="result-box" style="background:${r.color}">
