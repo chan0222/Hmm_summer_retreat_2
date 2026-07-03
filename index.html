@@ -582,7 +582,7 @@ async function applyItemColor(itemName, hex){
   renderDressup();
 }
 
-// 색상 피커 UI 삽입 함수 (모바일 호환)
+// 색상 피커 UI 삽입 함수 (모바일 호환 - 드래그 후 손 떼면 자동 적용)
 let _colorPickerUid = 0;
 function insertColorPicker({ label, presets, currentHex, onPreset, onCustom, containerId }){
   const wrap = document.getElementById(containerId);
@@ -595,21 +595,14 @@ function insertColorPicker({ label, presets, currentHex, onPreset, onCustom, con
     <div class="color-swatch-row" id="swatches-${uid}"></div>
     <div class="color-custom-row">
       <span>커스텀</span>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <input type="color" id="custom-${uid}" value="${currentHex}"
-          style="width:44px;height:36px;border:none;border-radius:8px;padding:2px;cursor:pointer;background:none;">
-        <button id="custom-apply-${uid}"
-          style="padding:6px 12px;border-radius:8px;border:none;background:linear-gradient(90deg,#ff9a52,#ffb347);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
-          적용
-        </button>
-      </div>
+      <input type="color" id="custom-${uid}" value="${currentHex}"
+        style="width:44px;height:36px;border:none;border-radius:8px;padding:2px;cursor:pointer;background:none;">
     </div>
   `;
   wrap.appendChild(div);
 
   const row = div.querySelector(`#swatches-${uid}`);
   const colorInput = div.querySelector(`#custom-${uid}`);
-  const applyBtn = div.querySelector(`#custom-apply-${uid}`);
 
   presets.forEach(p => {
     const sw = document.createElement('button');
@@ -625,16 +618,27 @@ function insertColorPicker({ label, presets, currentHex, onPreset, onCustom, con
     row.appendChild(sw);
   });
 
-  // 적용 버튼 — 색상 피커에서 고른 색을 명시적으로 적용
-  applyBtn.addEventListener('click', () => {
-    div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
-    onCustom(colorInput.value);
+  // 모바일: 손 떼는 순간(touchend) + PC: 드래그 끝(change) 둘 다 처리
+  let _pendingColor = null;
+
+  colorInput.addEventListener('input', e => {
+    _pendingColor = e.target.value; // 드래그 중 색상 저장만
   });
 
-  // PC에서는 change 이벤트도 지원 (드래그 후 놓을 때)
+  // 손 떼거나 피커 닫힐 때 적용
   colorInput.addEventListener('change', e => {
     div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
     onCustom(e.target.value);
+    _pendingColor = null;
+  });
+
+  // iOS: 피커가 blur될 때도 적용 (change가 안 오는 경우 대비)
+  colorInput.addEventListener('blur', e => {
+    if (_pendingColor) {
+      div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
+      onCustom(_pendingColor);
+      _pendingColor = null;
+    }
   });
 }
 
