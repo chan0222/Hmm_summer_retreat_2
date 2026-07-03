@@ -582,7 +582,7 @@ async function applyItemColor(itemName, hex){
   renderDressup();
 }
 
-// 색상 피커 UI 삽입 함수 (모바일 호환 - hex 텍스트 입력 방식)
+// 색상 피커 UI 삽입 함수 (모바일 호환)
 let _colorPickerUid = 0;
 function insertColorPicker({ label, presets, currentHex, onPreset, onCustom, containerId }){
   const wrap = document.getElementById(containerId);
@@ -596,18 +596,19 @@ function insertColorPicker({ label, presets, currentHex, onPreset, onCustom, con
     <div class="color-custom-row">
       <span>커스텀</span>
       <div style="display:flex;align-items:center;gap:6px;">
-        <div id="custom-preview-${uid}" style="width:28px;height:28px;border-radius:50%;background:${currentHex};border:2px solid #fff;box-shadow:0 0 0 1.5px #e8d2ad;flex-shrink:0;"></div>
-        <input type="text" id="custom-${uid}" value="${currentHex}" maxlength="7"
-          style="width:80px;font-size:13px;padding:4px 8px;border-radius:8px;border:1.5px solid #f0d9b5;font-family:monospace;text-align:center;">
-        <button id="custom-apply-${uid}" style="padding:4px 10px;border-radius:8px;border:none;background:linear-gradient(90deg,#ff9a52,#ffb347);color:#fff;font-size:12px;font-weight:700;cursor:pointer;">적용</button>
+        <input type="color" id="custom-${uid}" value="${currentHex}"
+          style="width:44px;height:36px;border:none;border-radius:8px;padding:2px;cursor:pointer;background:none;">
+        <button id="custom-apply-${uid}"
+          style="padding:6px 12px;border-radius:8px;border:none;background:linear-gradient(90deg,#ff9a52,#ffb347);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+          적용
+        </button>
       </div>
     </div>
   `;
   wrap.appendChild(div);
 
   const row = div.querySelector(`#swatches-${uid}`);
-  const preview = div.querySelector(`#custom-preview-${uid}`);
-  const textInput = div.querySelector(`#custom-${uid}`);
+  const colorInput = div.querySelector(`#custom-${uid}`);
   const applyBtn = div.querySelector(`#custom-apply-${uid}`);
 
   presets.forEach(p => {
@@ -618,37 +619,22 @@ function insertColorPicker({ label, presets, currentHex, onPreset, onCustom, con
     sw.onclick = () => {
       div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
       sw.classList.add('swatch-active');
-      textInput.value = p.hex;
-      preview.style.background = p.hex;
+      colorInput.value = p.hex;
       onPreset(p.hex, p.name);
     };
     row.appendChild(sw);
   });
 
-  // 텍스트 입력 변경 시 미리보기 업데이트
-  textInput.addEventListener('input', e => {
-    const val = e.target.value;
-    if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
-      preview.style.background = val;
-    }
-  });
-
-  // 적용 버튼
+  // 적용 버튼 — 색상 피커에서 고른 색을 명시적으로 적용
   applyBtn.addEventListener('click', () => {
-    const val = textInput.value.trim();
-    const hex = val.startsWith('#') ? val : '#' + val;
-    if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
-      preview.style.background = hex;
-      div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
-      onCustom(hex);
-    } else {
-      showToast('올바른 색상 코드를 입력해주세요 (예: #ff0000)');
-    }
+    div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
+    onCustom(colorInput.value);
   });
 
-  // 엔터 키로도 적용
-  textInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') applyBtn.click();
+  // PC에서는 change 이벤트도 지원 (드래그 후 놓을 때)
+  colorInput.addEventListener('change', e => {
+    div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
+    onCustom(e.target.value);
   });
 }
 
@@ -1147,8 +1133,21 @@ function renderDressup() {
       const ib = document.createElement('button');
       ib.className = 'item-btn' + (selected ? ' item-selected' : '');
       ib.innerHTML = `<img src="${src(item.file)}" alt="${item.name}"><span>${item.name}</span>`;
-      ib.onclick = () => {
+      ib.onclick = async () => {
         outfit[key] = { ...item };
+        // 앞머리 선택 시 현재 뒷머리 색깔로 자동 맞춤
+        if (key === 'fronthair' && colorState.hair && colorState.hair !== '#a87752') {
+          showToast('뒷머리 색깔로 맞추는 중...');
+          const dataUrl = await selectiveRecolor(item.file, colorState.hair, 0.06);
+          outfit.fronthair = { ...item, file: dataUrl, _baseFile: item.file };
+        }
+        // 뒷머리 선택 시 앞머리가 있으면 같은 색으로 맞춤
+        if (key === 'backhair' && colorState.hair && colorState.hair !== '#a87752' && outfit.fronthair) {
+          showToast('앞머리 색깔도 맞추는 중...');
+          const fBase = outfit.fronthair._baseFile || outfit.fronthair.file;
+          const fUrl = await selectiveRecolor(fBase, colorState.hair, 0.06);
+          outfit.fronthair = { ...outfit.fronthair, file: fUrl, _baseFile: fBase };
+        }
         renderDressup();
       };
       itemsWrap.appendChild(ib);
