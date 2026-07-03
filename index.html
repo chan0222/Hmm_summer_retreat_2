@@ -299,12 +299,12 @@ const TOP_BOY = [
 ];
 // 겉옷 (남녀 공용 + 여자전용, 상의와 별도 슬롯으로 동시 착용 가능)
 const OUTER_TOP = [
-  { name:'겉옷1', file:'outer_top_girl.png' }, // 여자
-  { name:'겉옷2', file:'outer_top2_join.png' }, // 공용
+  { name:'겉옷1', file:'outer_top_girl.png',  colorable:true },
+  { name:'겉옷2', file:'outer_top2_join.png',  colorable:true },
 ];
 const OUTER_TOP_BOY = [
-  { name:'겉옷',  file:'outer_top_boy.png'   }, // 남자
-  { name:'겉옷2', file:'outer_top2_join.png' }, // 공용
+  { name:'겉옷1', file:'outer_top_boy.png',    colorable:true },
+  { name:'겉옷2', file:'outer_top2_join.png',  colorable:true },
 ];
 
 // 하의 (noColor: 색상 커스텀 제외)
@@ -326,42 +326,44 @@ const BOTTOM_BOY = [
   { name:'청반바지', file:'bottom5_join.png' },
 ];
 
-// 신발 (신발 탭에서 선택)
+// 신발 (신발 탭에서 선택 — 양말 제거)
 const SHOES_ONLY = [
   { name:'신발1', file:'shoes1_join.png' },
   { name:'신발2', file:'shoes2_join.png' },
   { name:'신발3', file:'shoes3_join.png' },
   { name:'신발4', file:'shoes4_join.png' },
 ];
-// 양말 (신발 탭에서 함께 선택, 신발 레이어 아래)
-const SOCKS_ONLY = [
-  { name:'양말1', file:'socks1_join.png', group:'socks', behindShoes:true },
-  { name:'양말2', file:'socks2_join.png', group:'socks', behindShoes:true },
-];
-const SHOES = [...SHOES_ONLY, ...SOCKS_ONLY]; // 하위 호환
+const SOCKS_ONLY = []; // 양말 없음
+const SHOES = [...SHOES_ONLY];
 
-// 아이템
-// group: 'glasses'(1/9/10/15), 'tube'(4/5), 'hat'(6/7/13), 'hand'(2/8/18: 텀블러/기타/물총 중 하나)
-// behindBody: 바디보다 뒤 레이어 (4/5) — frontOfHair: 뒷머리보다 앞 + 바디보다 뒤 (3)
-// colorable: 색상 커스텀 가능 (2/4/5)
+// 아이템 — 순서 정리: 안경류 → 모자류 → 손아이템 → 튜브 → 기타아이템
+// group: 'glasses'(1/9/10/15), 'tube'(4/5), 'hat'(6/7/13), 'hand'(2/8/18), 'spark'(16/8: 기타/불꽃 중 하나)
+// behindBody: 바디보다 뒤 레이어 / frontOfHair: 뒷머리보다 앞 + 바디보다 뒤
+// colorable: 색상 커스텀 가능
 const ITEMS = [
+  // 안경류 (하나만)
   { name:'안경1',    file:'item1_join.png',  group:'glasses' },
-  { name:'텀블러',   file:'item2_join.png',  group:'hand',   colorable:true },
-  { name:'성경책',   file:'item3_join.png',  group:null,     behindBody:true, frontOfHair:true },
-  { name:'튜브1',    file:'item4_join.png',  group:'tube',   behindBody:true, colorable:true },
-  { name:'튜브2',    file:'item5_join.png',  group:'tube',   behindBody:true, colorable:true },
+  { name:'안경2',    file:'item10_join.png', group:'glasses' },
+  { name:'안경3',    file:'item15_join.png', group:'glasses' },
+  { name:'썬글라스', file:'item9_join.png',  group:'glasses' },
+  // 모자류 (하나만)
   { name:'모자1',    file:'item6_join.png',  group:'hat'     },
   { name:'모자2',    file:'item7_join.png',  group:'hat'     },
+  { name:'손수건2',  file:'item13_join.png', group:'hat'     },
+  // 손 아이템 (하나만)
+  { name:'텀블러',   file:'item2_join.png',  group:'hand',   colorable:true },
   { name:'기타',     file:'item8_join.png',  group:'hand'    },
-  { name:'썬글라스', file:'item9_join.png',  group:'glasses' },
-  { name:'안경2',    file:'item10_join.png', group:'glasses' },
+  { name:'물총',     file:'item18_join.png', group:'hand'    },
+  // 튜브 (하나만, 바디 뒤)
+  { name:'튜브1',    file:'item4_join.png',  group:'tube',   behindBody:true, colorable:true },
+  { name:'튜브2',    file:'item5_join.png',  group:'tube',   behindBody:true, colorable:true },
+  // 기타 (자유 선택)
+  { name:'성경책',   file:'item3_join.png',  group:null,     behindBody:true, frontOfHair:true },
   { name:'명찰',     file:'item11_join.png', group:null      },
   { name:'손수건1',  file:'item12_join.png', group:null      },
-  { name:'손수건2',  file:'item13_join.png', group:'hat'     },
   { name:'헤드폰',   file:'item14_join.png', group:null      },
-  { name:'안경3',    file:'item15_join.png', group:'glasses' },
-  { name:'불꽃',     file:'item16_join.png', group:null      },
-  { name:'물총',     file:'item18_join.png', group:'hand'    },
+  // 이펙트 (기타/불꽃 중 하나만)
+  { name:'불꽃',     file:'item16_join.png', group:'spark'   },
 ];
 
 // 아이템 색상 프리셋 (튜브/텀블러용 — 다양한 컬러)
@@ -454,7 +456,7 @@ async function selectiveRecolor(filePath, targetHex, satMin=0.06){
 }
 
 // 색상 상태 (현재 선택된 hex)
-const colorState = { hair:'#a87752', eye:'#452f1e', bottom:'#1c1c1c' };
+const colorState = { hair:'#a87752', eye:'#452f1e', bottom:'#1c1c1c', outer:'#a87752' };
 const itemColorState = {}; // 아이템명별 현재 색상 (튜브1, 튜브2, 텀블러)
 
 // 색상 적용 함수
@@ -539,8 +541,18 @@ async function applyBottomColor(hex){
   if(!outfit.bottom) return;
   const base = outfit.bottom._baseFile || outfit.bottom.file;
   showToast('하의색 바꾸는 중...');
-  const dataUrl = await selectiveRecolor(base, hex, 0.03); // satMin 낮춰서 치마류도 인식
+  const dataUrl = await selectiveRecolor(base, hex, 0.01); // 반바지처럼 무채색에 가까운 것도 인식
   outfit.bottom = { ...outfit.bottom, file: dataUrl, _baseFile: base };
+  renderDressup();
+}
+
+async function applyOuterColor(hex){
+  colorState.outer = hex;
+  if(!outfit.outer) return;
+  const base = outfit.outer._baseFile || outfit.outer.file;
+  showToast('겉옷색 바꾸는 중...');
+  const dataUrl = await selectiveRecolor(base, hex, 0.03);
+  outfit.outer = { ...outfit.outer, file: dataUrl, _baseFile: base };
   renderDressup();
 }
 
@@ -908,20 +920,18 @@ function stageHTML(bgFile) {
 // ===================== 카테고리 정의 =====================
 function getCategories() {
   if (selectedGender === 'male') return [
-    { key:'hair',   label:'머리',  icon:'💇' },
-    { key:'face',   label:'표정',  icon:'🙂' },
-    { key:'top',    label:'상의',  icon:'👕' },
-    { key:'outer',  label:'겉옷',  icon:'🧥' },
-    { key:'bottom', label:'하의',  icon:'👖' },
-    { key:'shoes',  label:'신발',  icon:'👟' },
+    { key:'hair',   label:'머리',   icon:'💇' },
+    { key:'face',   label:'표정',   icon:'🙂' },
+    { key:'top',    label:'상의',   icon:'👕' },
+    { key:'bottom', label:'하의',   icon:'👖' },
+    { key:'shoes',  label:'신발',   icon:'👟' },
     { key:'items',  label:'아이템', icon:'🎒' },
   ];
   return [
     { key:'backhair',  label:'뒷머리', icon:'💇' },
-    { key:'fronthair', label:'앞머리', icon:'✂️' },
+    { key:'fronthair', label:'앞머리', icon:'✂️'  },
     { key:'face',      label:'표정',   icon:'🙂' },
     { key:'top',       label:'상의',   icon:'👕' },
-    { key:'outer',     label:'겉옷',   icon:'🧥' },
     { key:'bottom',    label:'하의',   icon:'👖' },
     { key:'shoes',     label:'신발',   icon:'👟' },
     { key:'items',     label:'아이템', icon:'🎒' },
@@ -1022,42 +1032,44 @@ function renderDressup() {
   const itemsWrap = document.getElementById('items');
   const isMulti = activeCategory === 'items';
   const isShoes = activeCategory === 'shoes';
-  const noNone = activeCategory === 'face';
+  const isTop   = activeCategory === 'top';
+  const noNone  = activeCategory === 'face';
 
-  if (isShoes) {
-    // 신발 탭: 신발 섹션 + 양말 섹션 분리
-    // 신발
-    const shoeNone = document.createElement('button');
-    shoeNone.className = 'item-btn item-none' + (!outfit.shoes ? ' item-selected' : '');
-    shoeNone.innerHTML = `<span>➖</span><span>신발 없음</span>`;
-    shoeNone.onclick = () => { outfit.shoes = null; renderDressup(); };
-    itemsWrap.appendChild(shoeNone);
-    SHOES_ONLY.forEach(item => {
-      const selected = outfit.shoes && (outfit.shoes._baseFile || outfit.shoes.file) === item.file;
+  // 공통 단일선택 렌더 헬퍼
+  function renderSingleSelect(list, getOutfitVal, setOutfitVal, noneLabel) {
+    const noneBtn = document.createElement('button');
+    noneBtn.className = 'item-btn item-none' + (!getOutfitVal() ? ' item-selected' : '');
+    noneBtn.innerHTML = `<span>➖</span><span>${noneLabel}</span>`;
+    noneBtn.onclick = () => { setOutfitVal(null); renderDressup(); };
+    itemsWrap.appendChild(noneBtn);
+    list.forEach(item => {
+      const cur = getOutfitVal();
+      const selected = cur && (cur._baseFile || cur.file) === item.file;
       const ib = document.createElement('button');
       ib.className = 'item-btn' + (selected ? ' item-selected' : '');
       ib.innerHTML = `<img src="${src(item.file)}" alt="${item.name}"><span>${item.name}</span>`;
-      ib.onclick = () => { outfit.shoes = { ...item }; renderDressup(); };
+      ib.onclick = () => { setOutfitVal({ ...item }); renderDressup(); };
       itemsWrap.appendChild(ib);
     });
-    // 양말 구분선
-    const divider = document.createElement('div');
-    divider.style.cssText = 'grid-column:1/-1; font-size:12px; font-weight:700; color:#b08756; padding:4px 0 2px;';
-    divider.textContent = '🧦 양말';
-    itemsWrap.appendChild(divider);
-    const sockNone = document.createElement('button');
-    sockNone.className = 'item-btn item-none' + (!outfit.socks ? ' item-selected' : '');
-    sockNone.innerHTML = `<span>➖</span><span>양말 없음</span>`;
-    sockNone.onclick = () => { outfit.socks = null; renderDressup(); };
-    itemsWrap.appendChild(sockNone);
-    SOCKS_ONLY.forEach(item => {
-      const selected = outfit.socks && outfit.socks.name === item.name;
-      const ib = document.createElement('button');
-      ib.className = 'item-btn' + (selected ? ' item-selected' : '');
-      ib.innerHTML = `<img src="${src(item.file)}" alt="${item.name}"><span>${item.name}</span>`;
-      ib.onclick = () => { outfit.socks = { ...item }; renderDressup(); };
-      itemsWrap.appendChild(ib);
-    });
+  }
+
+  function addDivider(text) {
+    const d = document.createElement('div');
+    d.style.cssText = 'grid-column:1/-1; font-size:12px; font-weight:700; color:#b08756; padding:6px 0 2px;';
+    d.textContent = text;
+    itemsWrap.appendChild(d);
+  }
+
+  if (isTop) {
+    // 상의 탭: 상의 + 겉옷 같이
+    const outerList = isMale ? OUTER_TOP_BOY : OUTER_TOP;
+    const topList   = isMale ? TOP_BOY : TOP_GIRL;
+    renderSingleSelect(topList, () => outfit.top, v => { outfit.top = v; }, '상의 없음');
+    addDivider('🧥 겉옷');
+    renderSingleSelect(outerList, () => outfit.outer, v => { outfit.outer = v; }, '겉옷 없음');
+  } else if (isShoes) {
+    // 신발 탭: 신발만 (양말 제거)
+    renderSingleSelect(SHOES_ONLY, () => outfit.shoes, v => { outfit.shoes = v; }, '신발 없음');
   } else if (!noNone && !isMulti) {
     const currentVal = outfit[activeCategory];
     const noneBtn = document.createElement('button');
@@ -1162,11 +1174,21 @@ function renderDressup() {
     }
   }
 
-  // 하의 탭: noColor 아닐 때만 색상 피커 표시 (치마2 satMin 낮춰 적용)
+  // 상의 탭: 겉옷 선택 시 색상 피커
+  if (activeCategory === 'top' && outfit.outer) {
+    insertColorPicker({
+      label: '겉옷',
+      presets: bottomColorPresets,
+      currentHex: colorState.outer,
+      onPreset: (hex) => applyOuterColor(hex),
+      onCustom:  (hex) => applyOuterColor(hex),
+      containerId: 'color-pickers',
+    });
+  }
+
+  // 하의 탭: noColor 아닐 때만 색상 피커 표시
   if (activeCategory === 'bottom' && outfit.bottom) {
-    const curBottom = outfit.bottom;
-    const bottomNoColor = curBottom?.noColor || (curBottom._baseFile ? false : curBottom.noColor);
-    const baseBottomDef = [...BOTTOM_GIRL, ...BOTTOM_BOY].find(b => b.file === (curBottom._baseFile || curBottom.file));
+    const baseBottomDef = [...BOTTOM_GIRL, ...BOTTOM_BOY].find(b => b.file === (outfit.bottom._baseFile || outfit.bottom.file));
     if (!baseBottomDef?.noColor) {
       insertColorPicker({
         label: '하의',
