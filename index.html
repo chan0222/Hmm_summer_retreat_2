@@ -618,27 +618,10 @@ function insertColorPicker({ label, presets, currentHex, onPreset, onCustom, con
     row.appendChild(sw);
   });
 
-  // 모바일: 손 떼는 순간(touchend) + PC: 드래그 끝(change) 둘 다 처리
-  let _pendingColor = null;
-
-  colorInput.addEventListener('input', e => {
-    _pendingColor = e.target.value; // 드래그 중 색상 저장만
-  });
-
-  // 손 떼거나 피커 닫힐 때 적용
+  // change 이벤트만 사용 — 피커 창 닫힐 때(확인 누를 때)만 적용
   colorInput.addEventListener('change', e => {
     div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
     onCustom(e.target.value);
-    _pendingColor = null;
-  });
-
-  // iOS: 피커가 blur될 때도 적용 (change가 안 오는 경우 대비)
-  colorInput.addEventListener('blur', e => {
-    if (_pendingColor) {
-      div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
-      onCustom(_pendingColor);
-      _pendingColor = null;
-    }
   });
 }
 
