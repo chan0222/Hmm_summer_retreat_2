@@ -360,6 +360,7 @@ const ITEMS = [
   { name:'물총',     file:'item18_join.png', group:'hand'    },
   // 튜브 (하나만, 바디 뒤)
   { name:'튜브1',    file:'item4_join.png',  group:'tube',   behindBody:true, frontOfHair:true, colorable:true },
+  { name:'튜브2',    file:'item5_join.png',  group:'tube',   behindBody:true, frontOfHair:true, colorable:true },
   // 기타 (자유 선택)
   { name:'성경책',   file:'item3_join.png',  group:null,     behindBody:true, frontOfHair:true },
   { name:'명찰',     file:'item11_join.png', group:null      },
@@ -482,11 +483,19 @@ async function applyHairColor(hex, label){
 }
 async function applyFronthairColor(hex){
   colorState.hair = hex;
-  if(!outfit.fronthair) return;
-  const base = outfit.fronthair._baseFile || outfit.fronthair.file;
-  showToast('앞머리색 바꾸는 중...');
-  const dataUrl = await selectiveRecolor(base, hex, 0.06);
-  outfit.fronthair = { ...outfit.fronthair, file: dataUrl, _baseFile: base };
+  // 앞머리 색 변경
+  if(outfit.fronthair){
+    const base = outfit.fronthair._baseFile || outfit.fronthair.file;
+    showToast('앞머리색 바꾸는 중...');
+    const dataUrl = await selectiveRecolor(base, hex, 0.06);
+    outfit.fronthair = { ...outfit.fronthair, file: dataUrl, _baseFile: base };
+  }
+  // 뒷머리도 같이 변경
+  if(outfit.backhair){
+    const bBase = outfit.backhair._baseFile || outfit.backhair.file;
+    const bUrl = await selectiveRecolor(bBase, hex, 0.06);
+    outfit.backhair = { ...outfit.backhair, file: bUrl, _baseFile: bBase };
+  }
   renderDressup();
 }
 async function applyEyeColor(hex){
@@ -573,7 +582,7 @@ async function applyItemColor(itemName, hex){
   renderDressup();
 }
 
-// 색상 피커 UI 삽입 함수
+// 색상 피커 UI 삽입 함수 (모바일 호환 - hex 텍스트 입력 방식)
 let _colorPickerUid = 0;
 function insertColorPicker({ label, presets, currentHex, onPreset, onCustom, containerId }){
   const wrap = document.getElementById(containerId);
@@ -584,14 +593,23 @@ function insertColorPicker({ label, presets, currentHex, onPreset, onCustom, con
   div.innerHTML = `
     <p class="color-picker-label">🎨 ${label} 색 바꾸기</p>
     <div class="color-swatch-row" id="swatches-${uid}"></div>
-    <label class="color-custom-row">
-      <span>커스텀 색상</span>
-      <input type="color" id="custom-${uid}" value="${currentHex}">
-    </label>
+    <div class="color-custom-row">
+      <span>커스텀</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div id="custom-preview-${uid}" style="width:28px;height:28px;border-radius:50%;background:${currentHex};border:2px solid #fff;box-shadow:0 0 0 1.5px #e8d2ad;flex-shrink:0;"></div>
+        <input type="text" id="custom-${uid}" value="${currentHex}" maxlength="7"
+          style="width:80px;font-size:13px;padding:4px 8px;border-radius:8px;border:1.5px solid #f0d9b5;font-family:monospace;text-align:center;">
+        <button id="custom-apply-${uid}" style="padding:4px 10px;border-radius:8px;border:none;background:linear-gradient(90deg,#ff9a52,#ffb347);color:#fff;font-size:12px;font-weight:700;cursor:pointer;">적용</button>
+      </div>
+    </div>
   `;
   wrap.appendChild(div);
 
   const row = div.querySelector(`#swatches-${uid}`);
+  const preview = div.querySelector(`#custom-preview-${uid}`);
+  const textInput = div.querySelector(`#custom-${uid}`);
+  const applyBtn = div.querySelector(`#custom-apply-${uid}`);
+
   presets.forEach(p => {
     const sw = document.createElement('button');
     sw.className = 'color-swatch' + (p.hex === currentHex ? ' swatch-active' : '');
@@ -600,15 +618,37 @@ function insertColorPicker({ label, presets, currentHex, onPreset, onCustom, con
     sw.onclick = () => {
       div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
       sw.classList.add('swatch-active');
-      div.querySelector(`#custom-${uid}`).value = p.hex;
+      textInput.value = p.hex;
+      preview.style.background = p.hex;
       onPreset(p.hex, p.name);
     };
     row.appendChild(sw);
   });
 
-  div.querySelector(`#custom-${uid}`).addEventListener('change', e => {
-    div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
-    onCustom(e.target.value);
+  // 텍스트 입력 변경 시 미리보기 업데이트
+  textInput.addEventListener('input', e => {
+    const val = e.target.value;
+    if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+      preview.style.background = val;
+    }
+  });
+
+  // 적용 버튼
+  applyBtn.addEventListener('click', () => {
+    const val = textInput.value.trim();
+    const hex = val.startsWith('#') ? val : '#' + val;
+    if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+      preview.style.background = hex;
+      div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
+      onCustom(hex);
+    } else {
+      showToast('올바른 색상 코드를 입력해주세요 (예: #ff0000)');
+    }
+  });
+
+  // 엔터 키로도 적용
+  textInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') applyBtn.click();
   });
 }
 
@@ -981,7 +1021,7 @@ function renderIntro() {
     <div class="top-emoji">✝️</div>
     <h1>2026 Holy Mini me Maker</h1>
     <p class="sub">수련회 은혜 유형과 함께 나만의 HMM 미니미를 만들어봐</p>
-    <button class="start-btn" id="start">나만의 HMM 미니미 만들기 👕</button>
+    <button class="start-btn" id="start">나만의 미니미 만들기 👕</button>
     <p class="footer-note">소요시간 약 2분</p>
   `;
   document.getElementById('start').onclick = () => { screen = 'gender'; render(); };
@@ -1292,8 +1332,8 @@ function renderResult() {
     <p class="result-desc">${r.name}의 <b>${r.keyword}</b>과<br>${r2.name}의 <b>${r2.keyword}</b>이 함께 있어요</p>` : '';
 
   root.innerHTML = `
-    <h1>HMM 미니미 완성!</h1>
-    <p class="sub">나만의 미니미를 공유해 봐😆</p>
+    <h1>나의 캐릭터 & 은혜 유형</h1>
+    <p class="sub">코디한 캐릭터와 은혜 유형 결과예요</p>
     ${stageHTML(r.bg)}
     <p class="result-notice">이 테스트는 당신을 단정하기 위한 것이 아닙니다.<br>지금 내 안에 어떤 은혜를 더 구하면 좋을지<br>발견하는 마음으로 받아보세요 🌱</p>
     <div class="result-box" style="background:${r.color}">
