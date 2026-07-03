@@ -741,8 +741,8 @@ async function buildCompositeImage() {
     await draw('body_boy.png');
     await draw(outfit.hair?.file);
     await draw(outfit.face?.file || 'face1_boy.png');
-    await draw(outfit.socks?.file);
     await draw(outfit.shoes?.file);
+    await draw(outfit.socks?.file);
     await draw(outfit.bottom?.file);
     await draw(outfit.top?.file);
     await draw(outfit.outer?.file);
@@ -759,8 +759,8 @@ async function buildCompositeImage() {
       await draw('body_girl.png');
       await draw(outfit.fronthair?.file);
       await draw(outfit.face?.file || 'face1_girl.png');
-      await draw(outfit.socks?.file);
-    await draw(outfit.shoes?.file);
+      await draw(outfit.shoes?.file);
+    await draw(outfit.socks?.file);
       await draw(outfit.bottom?.file);
       await draw(outfit.top?.file);
     await draw(outfit.outer?.file);
@@ -769,8 +769,8 @@ async function buildCompositeImage() {
       for (const it of behindBodyItems)  await draw(it.file);
       for (const it of frontOfHairItems) await draw(it.file);
       await draw('body_girl.png');
-      await draw(outfit.socks?.file);
-    await draw(outfit.shoes?.file);
+      await draw(outfit.shoes?.file);
+    await draw(outfit.socks?.file);
       await draw(outfit.bottom?.file);
       await draw(outfit.top?.file);
     await draw(outfit.outer?.file);
@@ -784,8 +784,8 @@ async function buildCompositeImage() {
       await draw('body_girl.png');
       await draw(outfit.fronthair?.file);
       await draw(outfit.face?.file || 'face1_girl.png');
-      await draw(outfit.socks?.file);
-    await draw(outfit.shoes?.file);
+      await draw(outfit.shoes?.file);
+    await draw(outfit.socks?.file);
       await draw(outfit.bottom?.file);
       await draw(outfit.top?.file);
     await draw(outfit.outer?.file);
