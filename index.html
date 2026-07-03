@@ -326,15 +326,19 @@ const BOTTOM_BOY = [
   { name:'청반바지', file:'bottom5_join.png' },
 ];
 
-// 신발 (신발 탭에서 선택 — 양말 제거)
+// 신발 (신발 탭에서 선택)
 const SHOES_ONLY = [
   { name:'신발1', file:'shoes1_join.png' },
   { name:'신발2', file:'shoes2_join.png' },
   { name:'신발3', file:'shoes3_join.png' },
   { name:'신발4', file:'shoes4_join.png' },
 ];
-const SOCKS_ONLY = []; // 양말 없음
-const SHOES = [...SHOES_ONLY];
+// 양말 (신발 탭에서 함께 선택, 신발 레이어 아래)
+const SOCKS_ONLY = [
+  { name:'양말1', file:'socks1_join.png', group:'socks', behindShoes:true },
+  { name:'양말2', file:'socks2_join.png', group:'socks', behindShoes:true },
+];
+const SHOES = [...SHOES_ONLY, ...SOCKS_ONLY];
 
 // 아이템 — 순서 정리: 안경류 → 모자류 → 손아이템 → 튜브 → 기타아이템
 // group: 'glasses'(1/9/10/15), 'tube'(4/5), 'hat'(6/7/13), 'hand'(2/8/18), 'spark'(16/8: 기타/불꽃 중 하나)
@@ -756,7 +760,7 @@ async function buildCompositeImage() {
       await draw(outfit.fronthair?.file);
       await draw(outfit.face?.file || 'face1_girl.png');
       await draw(outfit.socks?.file);
-      await draw(outfit.shoes?.file);
+    await draw(outfit.shoes?.file);
       await draw(outfit.bottom?.file);
       await draw(outfit.top?.file);
     await draw(outfit.outer?.file);
@@ -766,7 +770,7 @@ async function buildCompositeImage() {
       for (const it of frontOfHairItems) await draw(it.file);
       await draw('body_girl.png');
       await draw(outfit.socks?.file);
-      await draw(outfit.shoes?.file);
+    await draw(outfit.shoes?.file);
       await draw(outfit.bottom?.file);
       await draw(outfit.top?.file);
     await draw(outfit.outer?.file);
@@ -781,7 +785,7 @@ async function buildCompositeImage() {
       await draw(outfit.fronthair?.file);
       await draw(outfit.face?.file || 'face1_girl.png');
       await draw(outfit.socks?.file);
-      await draw(outfit.shoes?.file);
+    await draw(outfit.shoes?.file);
       await draw(outfit.bottom?.file);
       await draw(outfit.top?.file);
     await draw(outfit.outer?.file);
@@ -847,75 +851,67 @@ function stageHTML(bgFile) {
   const layers = [];
   if (bgFile) layers.push(`<img class="stage-full" src="${A + bgFile}" style="z-index:0;" alt="bg">`);
 
-  // 아이템 분류
-  const behindBodyItems = outfit.items.filter(it => it.behindBody && !it.frontOfHair); // 튜브: 뒷머리보다도 뒤
-  const frontOfHairItems = outfit.items.filter(it => it.frontOfHair);                  // 성경책: 뒷머리보다 앞, 바디보다 뒤
-  const frontItems = outfit.items.filter(it => !it.behindBody && !it.frontOfHair);     // 일반 아이템
+  const behindBodyItems  = outfit.items.filter(it => it.behindBody && !it.frontOfHair);
+  const frontOfHairItems = outfit.items.filter(it => it.frontOfHair);
+  const frontItems       = outfit.items.filter(it => !it.behindBody && !it.frontOfHair);
 
   if (selectedGender === 'male') {
-    // 배경 > 바디뒤아이템 > 바디 > 헤어 > 표정 > 양말 > 신발 > 하의 > 상의 > 아이템
-    behindBodyItems.forEach(it => layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:0.5;" alt="${it.name}">`));
+    behindBodyItems.forEach(it =>  layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:0.5;" alt="${it.name}">`));
     frontOfHairItems.forEach(it => layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:1.5;" alt="${it.name}">`));
     layers.push(`<img class="stage-full" src="${A}body_boy.png" style="z-index:2;" alt="body">`);
-    if (outfit.hair) layers.push(`<img class="stage-full" src="${src(outfit.hair.file)}" style="z-index:3;" alt="hair">`);
+    if (outfit.hair)   layers.push(`<img class="stage-full" src="${src(outfit.hair.file)}" style="z-index:3;" alt="hair">`);
     layers.push(`<img class="stage-full" src="${src(outfit.face?.file || 'face1_boy.png')}" style="z-index:4;" alt="face">`);
-    if (outfit.socks) layers.push(`<img class="stage-full" src="${src(outfit.socks.file)}" style="z-index:5;" alt="socks">`);
-    if (outfit.shoes) layers.push(`<img class="stage-full" src="${src(outfit.shoes.file)}" style="z-index:6;" alt="shoes">`);
-    if (outfit.bottom) layers.push(`<img class="stage-full" src="${src(outfit.bottom.file)}" style="z-index:7;" alt="bottom">`);
-    if (outfit.top)    layers.push(`<img class="stage-full" src="${src(outfit.top.file)}" style="z-index:8;" alt="top">`);
-      if (outfit.outer)    layers.push(`<img class="stage-full" src="${src(outfit.outer.file)}" style="z-index:8.5;" alt="outer">`);
+    if (outfit.socks) layers.push(`<img class="stage-full" src="${src(outfit.socks.file)}" style="z-index:4.5;" alt="socks">`); if (outfit.shoes)  layers.push(`<img class="stage-full" src="${src(outfit.shoes.file)}" style="z-index:5;" alt="shoes">`);
+    if (outfit.bottom) layers.push(`<img class="stage-full" src="${src(outfit.bottom.file)}" style="z-index:6;" alt="bottom">`);
+    if (outfit.top)    layers.push(`<img class="stage-full" src="${src(outfit.top.file)}" style="z-index:7;" alt="top">`);
+    if (outfit.outer)  layers.push(`<img class="stage-full" src="${src(outfit.outer.file)}" style="z-index:8;" alt="outer">`);
     frontItems.forEach(it => layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:9;" alt="${it.name}">`));
   } else {
     const bh = outfit.backhair;
-    const isBackGroup = bh && !bh.front;  // 1,2,3,4,7
-    const isFrontGroup = bh && bh.front;  // 5,6
+    const isBackGroup  = bh && !bh.front;
+    const isFrontGroup = bh && bh.front;
 
     if (isBackGroup) {
-      // 배경 > 바디뒤아이템 > 백헤어 > 성경책 > 바디 > 앞머리 > 표정 > 양말 > 신발 > 하의 > 상의 > 아이템
-      behindBodyItems.forEach(it => layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:0.5;" alt="${it.name}">`));
+      behindBodyItems.forEach(it =>  layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:0.5;" alt="${it.name}">`));
       layers.push(`<img class="stage-full" src="${src(bh.file)}" style="z-index:1;" alt="backhair">`);
       frontOfHairItems.forEach(it => layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:1.5;" alt="${it.name}">`));
       layers.push(`<img class="stage-full" src="${A}body_girl.png" style="z-index:2;" alt="body">`);
       if (outfit.fronthair) layers.push(`<img class="stage-full" src="${src(outfit.fronthair.file)}" style="z-index:3;" alt="fronthair">`);
       layers.push(`<img class="stage-full" src="${src(outfit.face?.file || 'face1_girl.png')}" style="z-index:4;" alt="face">`);
-      if (outfit.socks) layers.push(`<img class="stage-full" src="${src(outfit.socks.file)}" style="z-index:5;" alt="socks">`);
-      if (outfit.shoes)  layers.push(`<img class="stage-full" src="${src(outfit.shoes.file)}" style="z-index:6;" alt="shoes">`);
-      if (outfit.bottom) layers.push(`<img class="stage-full" src="${src(outfit.bottom.file)}" style="z-index:7;" alt="bottom">`);
-      if (outfit.top)    layers.push(`<img class="stage-full" src="${src(outfit.top.file)}" style="z-index:8;" alt="top">`);
-      if (outfit.outer)    layers.push(`<img class="stage-full" src="${src(outfit.outer.file)}" style="z-index:8.5;" alt="outer">`);
+      if (outfit.socks) layers.push(`<img class="stage-full" src="${src(outfit.socks.file)}" style="z-index:4.5;" alt="socks">`); if (outfit.shoes)  layers.push(`<img class="stage-full" src="${src(outfit.shoes.file)}" style="z-index:5;" alt="shoes">`);
+      if (outfit.bottom) layers.push(`<img class="stage-full" src="${src(outfit.bottom.file)}" style="z-index:6;" alt="bottom">`);
+      if (outfit.top)    layers.push(`<img class="stage-full" src="${src(outfit.top.file)}" style="z-index:7;" alt="top">`);
+      if (outfit.outer)  layers.push(`<img class="stage-full" src="${src(outfit.outer.file)}" style="z-index:8;" alt="outer">`);
       frontItems.forEach(it => layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:9;" alt="${it.name}">`));
     } else if (isFrontGroup) {
-      // 배경 > 바디뒤아이템 > 성경책 > 바디 > 양말 > 신발 > 하의 > 상의 > 백헤어 > 앞머리 > 표정 > 아이템
-      behindBodyItems.forEach(it => layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:0.5;" alt="${it.name}">`));
+      behindBodyItems.forEach(it =>  layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:0.5;" alt="${it.name}">`));
       frontOfHairItems.forEach(it => layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:0.8;" alt="${it.name}">`));
       layers.push(`<img class="stage-full" src="${A}body_girl.png" style="z-index:1;" alt="body">`);
-      if (outfit.socks) layers.push(`<img class="stage-full" src="${src(outfit.socks.file)}" style="z-index:2;" alt="socks">`);
-      if (outfit.shoes)  layers.push(`<img class="stage-full" src="${src(outfit.shoes.file)}" style="z-index:3;" alt="shoes">`);
-      if (outfit.bottom) layers.push(`<img class="stage-full" src="${src(outfit.bottom.file)}" style="z-index:4;" alt="bottom">`);
-      if (outfit.top)    layers.push(`<img class="stage-full" src="${src(outfit.top.file)}" style="z-index:5;" alt="top">`);
-      if (outfit.outer)    layers.push(`<img class="stage-full" src="${src(outfit.outer.file)}" style="z-index:5.5;" alt="outer">`);
+      if (outfit.socks) layers.push(`<img class="stage-full" src="${src(outfit.socks.file)}" style="z-index:1.5;" alt="socks">`); if (outfit.shoes)  layers.push(`<img class="stage-full" src="${src(outfit.shoes.file)}" style="z-index:2;" alt="shoes">`);
+      if (outfit.bottom) layers.push(`<img class="stage-full" src="${src(outfit.bottom.file)}" style="z-index:3;" alt="bottom">`);
+      if (outfit.top)    layers.push(`<img class="stage-full" src="${src(outfit.top.file)}" style="z-index:4;" alt="top">`);
+      if (outfit.outer)  layers.push(`<img class="stage-full" src="${src(outfit.outer.file)}" style="z-index:5;" alt="outer">`);
       layers.push(`<img class="stage-full" src="${src(bh.file)}" style="z-index:6;" alt="backhair">`);
       if (outfit.fronthair) layers.push(`<img class="stage-full" src="${src(outfit.fronthair.file)}" style="z-index:7;" alt="fronthair">`);
       layers.push(`<img class="stage-full" src="${src(outfit.face?.file || 'face1_girl.png')}" style="z-index:8;" alt="face">`);
       frontItems.forEach(it => layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:9;" alt="${it.name}">`));
     } else {
-      // 뒷머리 미선택
-      behindBodyItems.forEach(it => layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:0.5;" alt="${it.name}">`));
+      behindBodyItems.forEach(it =>  layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:0.5;" alt="${it.name}">`));
       frontOfHairItems.forEach(it => layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:0.8;" alt="${it.name}">`));
       layers.push(`<img class="stage-full" src="${A}body_girl.png" style="z-index:1;" alt="body">`);
       if (outfit.fronthair) layers.push(`<img class="stage-full" src="${src(outfit.fronthair.file)}" style="z-index:2;" alt="fronthair">`);
       layers.push(`<img class="stage-full" src="${src(outfit.face?.file || 'face1_girl.png')}" style="z-index:3;" alt="face">`);
-      if (outfit.socks) layers.push(`<img class="stage-full" src="${src(outfit.socks.file)}" style="z-index:4;" alt="socks">`);
-      if (outfit.shoes)  layers.push(`<img class="stage-full" src="${src(outfit.shoes.file)}" style="z-index:5;" alt="shoes">`);
-      if (outfit.bottom) layers.push(`<img class="stage-full" src="${src(outfit.bottom.file)}" style="z-index:6;" alt="bottom">`);
-      if (outfit.top)    layers.push(`<img class="stage-full" src="${src(outfit.top.file)}" style="z-index:7;" alt="top">`);
-      if (outfit.outer)    layers.push(`<img class="stage-full" src="${src(outfit.outer.file)}" style="z-index:7.5;" alt="outer">`);
+      if (outfit.socks) layers.push(`<img class="stage-full" src="${src(outfit.socks.file)}" style="z-index:3.5;" alt="socks">`); if (outfit.shoes)  layers.push(`<img class="stage-full" src="${src(outfit.shoes.file)}" style="z-index:4;" alt="shoes">`);
+      if (outfit.bottom) layers.push(`<img class="stage-full" src="${src(outfit.bottom.file)}" style="z-index:5;" alt="bottom">`);
+      if (outfit.top)    layers.push(`<img class="stage-full" src="${src(outfit.top.file)}" style="z-index:6;" alt="top">`);
+      if (outfit.outer)  layers.push(`<img class="stage-full" src="${src(outfit.outer.file)}" style="z-index:7;" alt="outer">`);
       frontItems.forEach(it => layers.push(`<img class="stage-full" src="${src(it.file)}" style="z-index:8;" alt="${it.name}">`));
     }
   }
 
   return `<div class="dressup-stage">${layers.join('')}</div>`;
 }
+
 
 // ===================== 카테고리 정의 =====================
 function getCategories() {
@@ -1068,8 +1064,22 @@ function renderDressup() {
     addDivider('🧥 겉옷');
     renderSingleSelect(outerList, () => outfit.outer, v => { outfit.outer = v; }, '겉옷 없음');
   } else if (isShoes) {
-    // 신발 탭: 신발만 (양말 제거)
+    // 신발 탭: 신발 + 양말
     renderSingleSelect(SHOES_ONLY, () => outfit.shoes, v => { outfit.shoes = v; }, '신발 없음');
+    addDivider('🧦 양말');
+    const sockNone = document.createElement('button');
+    sockNone.className = 'item-btn item-none' + (!outfit.socks ? ' item-selected' : '');
+    sockNone.innerHTML = `<span>➖</span><span>양말 없음</span>`;
+    sockNone.onclick = () => { outfit.socks = null; renderDressup(); };
+    itemsWrap.appendChild(sockNone);
+    SOCKS_ONLY.forEach(item => {
+      const selected = outfit.socks && outfit.socks.name === item.name;
+      const ib = document.createElement('button');
+      ib.className = 'item-btn' + (selected ? ' item-selected' : '');
+      ib.innerHTML = `<img src="${src(item.file)}" alt="${item.name}"><span>${item.name}</span>`;
+      ib.onclick = () => { outfit.socks = { ...item }; renderDressup(); };
+      itemsWrap.appendChild(ib);
+    });
   } else if (!noNone && !isMulti) {
     const currentVal = outfit[activeCategory];
     const noneBtn = document.createElement('button');
