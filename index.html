@@ -241,10 +241,10 @@ const BACKHAIR = [
   { name:'뒷머리1', file:'backhair1_girl_.png', front:false },
   { name:'뒷머리2', file:'backhair2_girl.png',  front:false },
   { name:'뒷머리3', file:'backhair3_girl.png',  front:false },
-  { name:'뒷머리7', file:'backhair7_girl.png',  front:false },
-  { name:'뒷머리4', file:'backhair4_girl.png',  front:false },
-  { name:'뒷머리5', file:'backhair5_girl.png',  front:true  },
-  { name:'뒷머리6', file:'backhair6_girl.png',  front:true  },
+  { name:'뒷머리4', file:'backhair7_girl.png',  front:false },
+  { name:'뒷머리5', file:'backhair4_girl.png',  front:false },
+  { name:'뒷머리6', file:'backhair5_girl.png',  front:true  },
+  { name:'뒷머리7', file:'backhair6_girl.png',  front:true  },
 ];
 
 // 앞머리
@@ -316,7 +316,7 @@ const BOTTOM_GIRL = [
   { name:'와이드',   file:'bottom5_join.png'  },
   { name:'치마1',    file:'bottom2_girl.png'  },
   { name:'치마2',    file:'bottom3_girl.png'  },
-  { name:'하의5',    file:'bottom4_girl.png'  },
+  { name:'치마3',    file:'bottom4_girl.png'  },
 ];
 const BOTTOM_BOY = [
   { name:'카고바지', file:'bottom1_boy.png'  },
@@ -360,6 +360,7 @@ const ITEMS = [
   { name:'물총',     file:'item18_join.png', group:'hand'    },
   // 튜브 (하나만, 바디 뒤)
   { name:'튜브1',    file:'item4_join.png',  group:'tube',   behindBody:true, frontOfHair:true, colorable:true },
+  { name:'튜브2',    file:'item5_join.png',  group:'tube',   behindBody:true, frontOfHair:true, colorable:true },
   // 기타 (자유 선택)
   { name:'성경책',   file:'item3_join.png',  group:null,     behindBody:true, frontOfHair:true },
   { name:'명찰',     file:'item11_join.png', group:null      },
@@ -581,7 +582,7 @@ async function applyItemColor(itemName, hex){
   renderDressup();
 }
 
-// 색상 피커 UI 삽입 함수 (모바일 호환 - 드래그 후 손 떼면 자동 적용)
+// 색상 피커 UI 삽입 함수 (인라인 캔버스 방식 - 모바일 완전 호환)
 let _colorPickerUid = 0;
 function insertColorPicker({ label, presets, currentHex, onPreset, onCustom, containerId }){
   const wrap = document.getElementById(containerId);
@@ -592,16 +593,103 @@ function insertColorPicker({ label, presets, currentHex, onPreset, onCustom, con
   div.innerHTML = `
     <p class="color-picker-label">🎨 ${label} 색 바꾸기</p>
     <div class="color-swatch-row" id="swatches-${uid}"></div>
-    <div class="color-custom-row">
-      <span>커스텀</span>
-      <input type="color" id="custom-${uid}" value="${currentHex}"
-        style="width:44px;height:36px;border:none;border-radius:8px;padding:2px;cursor:pointer;background:none;">
+    <div style="margin-top:8px;">
+      <canvas id="spectrum-${uid}" width="320" height="120"
+        style="width:100%;height:80px;border-radius:10px;cursor:crosshair;touch-action:none;display:block;"></canvas>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+        <div id="preview-${uid}" style="width:32px;height:32px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 0 0 1.5px #e8d2ad;background:${currentHex};flex-shrink:0;"></div>
+        <span id="hex-${uid}" style="font-size:12px;color:#7a4a1f;font-weight:600;font-family:monospace;">${currentHex}</span>
+        <span style="font-size:11px;color:#b08756;">← 드래그해서 색 선택, 손 떼면 적용</span>
+      </div>
     </div>
   `;
   wrap.appendChild(div);
 
   const row = div.querySelector(`#swatches-${uid}`);
-  const colorInput = div.querySelector(`#custom-${uid}`);
+  const canvas = div.querySelector(`#spectrum-${uid}`);
+  const preview = div.querySelector(`#preview-${uid}`);
+  const hexLabel = div.querySelector(`#hex-${uid}`);
+  const ctx = canvas.getContext('2d');
+
+  // 스펙트럼 그리기
+  function drawSpectrum() {
+    const W = canvas.width, H = canvas.height;
+    // 가로: 색상(hue), 세로: 위=밝음 아래=어두움
+    for (let x = 0; x < W; x++) {
+      const hue = (x / W) * 360;
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, `hsl(${hue},100%,90%)`);
+      grad.addColorStop(0.5, `hsl(${hue},100%,50%)`);
+      grad.addColorStop(1, `hsl(${hue},100%,15%)`);
+      ctx.fillStyle = grad;
+      ctx.fillRect(x, 0, 1, H);
+    }
+    // 왼쪽에 무채색(흰→검) 섹션
+    const grayGrad = ctx.createLinearGradient(0, 0, 0, H);
+    grayGrad.addColorStop(0, '#ffffff');
+    grayGrad.addColorStop(0.5, '#888888');
+    grayGrad.addColorStop(1, '#000000');
+    ctx.fillStyle = grayGrad;
+    ctx.fillRect(0, 0, 20, H);
+  }
+  drawSpectrum();
+
+  function getColorAt(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.max(0, Math.min(canvas.width - 1, Math.round((clientX - rect.left) / rect.width * canvas.width)));
+    const y = Math.max(0, Math.min(canvas.height - 1, Math.round((clientY - rect.top) / rect.height * canvas.height)));
+    const px = ctx.getImageData(x, y, 1, 1).data;
+    return `#${px[0].toString(16).padStart(2,'0')}${px[1].toString(16).padStart(2,'0')}${px[2].toString(16).padStart(2,'0')}`;
+  }
+
+  let isDragging = false;
+  let lastHex = currentHex;
+
+  function onMove(clientX, clientY) {
+    const hex = getColorAt(clientX, clientY);
+    lastHex = hex;
+    preview.style.background = hex;
+    hexLabel.textContent = hex;
+    // 미리보기만 - 여기서는 절대 onCustom 호출 안 함
+  }
+
+  function onEnd(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
+    // 손 뗀 후 약간 딜레이 줘서 DOM 재렌더 충돌 방지
+    setTimeout(() => onCustom(lastHex), 50);
+  }
+
+  // 마우스
+  canvas.addEventListener('mousedown', e => { isDragging = true; onMove(e.clientX, e.clientY); });
+  canvas.addEventListener('mousemove', e => { if (isDragging) onMove(e.clientX, e.clientY); });
+  canvas.addEventListener('mouseup', onEnd);
+  canvas.addEventListener('mouseleave', e => { if (isDragging) onEnd(e); });
+
+  // 터치 (모바일) - passive:false로 스크롤 방지
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    isDragging = true;
+    onMove(e.touches[0].clientX, e.touches[0].clientY);
+  }, {passive:false});
+
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isDragging) onMove(e.touches[0].clientX, e.touches[0].clientY);
+  }, {passive:false});
+
+  canvas.addEventListener('touchend', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    onEnd(e);
+  }, {passive:false});
+
+  canvas.addEventListener('touchcancel', e => {
+    isDragging = false;
+  }, {passive:false});
 
   presets.forEach(p => {
     const sw = document.createElement('button');
@@ -611,16 +699,12 @@ function insertColorPicker({ label, presets, currentHex, onPreset, onCustom, con
     sw.onclick = () => {
       div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
       sw.classList.add('swatch-active');
-      colorInput.value = p.hex;
+      preview.style.background = p.hex;
+      hexLabel.textContent = p.hex;
+      lastHex = p.hex;
       onPreset(p.hex, p.name);
     };
     row.appendChild(sw);
-  });
-
-  // change 이벤트만 사용 — 피커 창 닫힐 때(확인 누를 때)만 적용
-  colorInput.addEventListener('change', e => {
-    div.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('swatch-active'));
-    onCustom(e.target.value);
   });
 }
 
@@ -991,9 +1075,9 @@ function render() {
 function renderIntro() {
   root.innerHTML = `
     <div class="top-emoji">✝️</div>
-    <h1>2026 HOLY MINIME MAKER</h1>
-    <p class="sub">나만의 HMM 미니미를 만들어봐</p>
-    <button class="start-btn" id="start">나만의 HMM 미니미 만들기 👕</button>
+    <h1>2026 Holy Mini me Maker</h1>
+    <p class="sub">수련회 은혜 유형과 함께 나만의 HMM 미니미를 만들어봐</p>
+    <button class="start-btn" id="start">나만의 미니미 만들기 👕</button>
     <p class="footer-note">소요시간 약 2분</p>
   `;
   document.getElementById('start').onclick = () => { screen = 'gender'; render(); };
@@ -1317,8 +1401,8 @@ function renderResult() {
     <p class="result-desc">${r.name}의 <b>${r.keyword}</b>과<br>${r2.name}의 <b>${r2.keyword}</b>이 함께 있어요</p>` : '';
 
   root.innerHTML = `
-    <h1>HOLY MINIME MAKER</h1>
-    <p class="sub">당신의 수련회 미니미에요</p>
+    <h1>나의 캐릭터 & 은혜 유형</h1>
+    <p class="sub">코디한 캐릭터와 은혜 유형 결과예요</p>
     ${stageHTML(r.bg)}
     <p class="result-notice">이 테스트는 당신을 단정하기 위한 것이 아닙니다.<br>지금 내 안에 어떤 은혜를 더 구하면 좋을지<br>발견하는 마음으로 받아보세요 🌱</p>
     <div class="result-box" style="background:${r.color}">
@@ -1342,7 +1426,7 @@ function renderResult() {
     <button class="back-btn" id="restart-all">🔄 처음부터 다시</button>
   `;
 
-  bindShareRow(`나는 "${r.name}"! 코디까지 완성했어 🎉`, '너도 코디하고 은혜 유형 테스트 해볼래?');
+  bindShareRow(`나는 "${r.name}"! 코디까지 완성했어 🎉`, '너만의 HMM 미니미를 만들어볼래?');
   document.getElementById('share-image-btn').onclick = () => shareCompositeImage();
   document.getElementById('save-image-btn').onclick = () => saveCompositeImage();
   document.getElementById('edit-outfit').onclick = () => { screen = 'gender'; render(); };
