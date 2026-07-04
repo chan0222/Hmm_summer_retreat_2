@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026 HMM 수련회 유형 테스트</title>
+<title>2026 HOLY MINIME MAKER</title>
 <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
 <style>
   * { box-sizing: border-box; }
@@ -892,14 +892,14 @@ async function buildCompositeImage() {
   // 텍스트 오버레이
   if (r) {
     ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.beginPath(); ctx.roundRect(W/2-200, H-110, 400, 80, 16); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.90)';
+    ctx.beginPath(); ctx.roundRect(W/2-230, H-120, 460, 100, 16); ctx.fill();
     ctx.fillStyle = '#4a2e10';
-    ctx.font = 'bold 22px "Apple SD Gothic Neo","Noto Sans KR",sans-serif';
-    ctx.fillText('2026 HMM 수련회', W/2, H-80);
+    ctx.font = 'bold 26px "Apple SD Gothic Neo","Noto Sans KR",sans-serif';
+    ctx.fillText('2026 HMM 수련회', W/2, H-88);
     ctx.fillStyle = '#ff7a3d';
-    ctx.font = 'bold 18px "Apple SD Gothic Neo","Noto Sans KR",sans-serif';
-    ctx.fillText(`${r.emoji} ${r.name} — ${r.title}`, W/2, H-48);
+    ctx.font = 'bold 24px "Apple SD Gothic Neo","Noto Sans KR",sans-serif';
+    ctx.fillText(`${r.emoji} ${r.name} — ${r.title}`, W/2, H-52);
   }
 
   return canvas;
